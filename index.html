@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Neon Guess Number</title>
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Segoe UI',sans-serif;
+}
+
+body{
+  min-height:100vh;
+  overflow:hidden;
+  background:radial-gradient(circle at top,#151530,#050510 70%);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  color:white;
+  position:relative;
+}
+
+.stars{
+  position:absolute;
+  inset:0;
+  overflow:hidden;
+  z-index:0;
+  pointer-events:none;
+}
+
+.star{
+  position:absolute;
+  width:2px;
+  height:2px;
+  background:white;
+  opacity:.7;
+  animation:twinkle 3s infinite alternate;
+}
+
+@keyframes twinkle{
+  from{opacity:.2;}
+  to{opacity:1;}
+}
+
+.game-box{
+  position:relative;
+  z-index:10;
+  width:90%;
+  max-width:500px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.1);
+  backdrop-filter:blur(12px);
+  border-radius:30px;
+  padding:40px;
+  text-align:center;
+  box-shadow:0 0 40px rgba(0,255,255,.3);
+  animation:float 3s ease-in-out infinite;
+}
+
+@keyframes float{
+  0%,100%{transform:translateY(0);}
+  50%{transform:translateY(-10px);}
+}
+
+h1{
+  font-size:42px;
+  font-family:Georgia,serif;
+  letter-spacing:2px;
+  margin-bottom:10px;
+  color:cyan;
+  text-shadow:0 0 20px cyan;
+}
+
+.subtitle{
+  color:#ccc;
+  margin-bottom:30px;
+}
+
+.hint{
+  min-height:70px;
+  font-size:28px;
+  margin-bottom:25px;
+  font-weight:bold;
+  text-shadow:0 0 10px white;
+}
+
+input{
+  width:100%;
+  padding:18px;
+  border:none;
+  outline:none;
+  border-radius:20px;
+  font-size:24px;
+  text-align:center;
+  background:rgba(255,255,255,.08);
+  color:white;
+  box-shadow:inset 0 0 15px rgba(0,255,255,.3);
+}
+
+button{
+  margin-top:20px;
+  width:100%;
+  padding:18px;
+  border:none;
+  border-radius:20px;
+  background:linear-gradient(45deg,cyan,#00ff88);
+  color:black;
+  font-size:22px;
+  font-weight:bold;
+  cursor:pointer;
+  transition:.3s;
+  box-shadow:0 0 20px cyan;
+}
+
+button:hover{
+  transform:scale(1.05);
+  box-shadow:0 0 35px cyan;
+}
+
+.attempts{
+  margin-top:20px;
+  color:#aaa;
+}
+
+/* CELEBRATION */
+
+.celebration{
+  position:fixed;
+  inset:0;
+  display:none;
+  justify-content:center;
+  align-items:center;
+  background:rgba(0,0,0,.55);
+  z-index:20;
+}
+
+.love-card{
+  position:relative;
+  width:90%;
+  max-width:700px;
+  background:rgba(255,255,255,.9);
+  border-radius:40px;
+  padding:70px 50px;
+  text-align:center;
+  box-shadow:0 30px 80px rgba(255,105,180,.2);
+  animation:cardPop .8s ease;
+}
+
+@keyframes cardPop{
+  from{
+    opacity:0;
+    transform:translateY(40px) scale(.9);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0) scale(1);
+  }
+}
+
+.celebration h2{
+  font-size:60px;
+  color:#ff1493;
+  text-shadow:
+    0 0 10px #ff69b4,
+    0 0 20px #ff69b4,
+    0 0 40px white;
+  animation:bounce .8s infinite;
+}
+
+@keyframes bounce{
+  0%,100%{transform:scale(1);}
+  50%{transform:scale(1.08);}
+}
+
+.celebration p{
+  margin-top:20px;
+  font-size:28px;
+  color:#333;
+}
+
+.love-text{
+  margin-top:30px;
+  font-size:24px;
+  line-height:1.8;
+  color:#5c4b51;
+  font-style:italic;
+}
+
+.restart{
+  margin-top:30px;
+  width:220px;
+}
+
+.mini-love{
+  position:absolute;
+  padding:10px 18px;
+  border-radius:999px;
+  background:rgba(255,255,255,.85);
+  color:#d63384;
+  font-size:14px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  box-shadow:0 10px 25px rgba(214,51,132,.12);
+}
+
+.love1{
+  top:20px;
+  left:30px;
+}
+
+.love2{
+  top:40px;
+  right:40px;
+}
+
+.love3{
+  bottom:25px;
+  left:50%;
+  transform:translateX(-50%);
+}
+
+/* HEARTS */
+
+.heart{
+  position:absolute;
+  color:pink;
+  font-size:24px;
+  animation:floatHeart linear forwards;
+  opacity:.8;
+  pointer-events:none;
+}
+
+@keyframes floatHeart{
+  from{
+    transform:translateY(0) scale(1);
+    opacity:1;
+  }
+  to{
+    transform:translateY(-120vh) scale(1.8);
+    opacity:0;
+  }
+}
+
+/* CONFETTI */
+
+.confetti{
+  position:absolute;
+  width:10px;
+  height:10px;
+  top:-20px;
+  animation:fall linear forwards;
+  pointer-events:none;
+}
+
+@keyframes fall{
+  to{
+    transform:translateY(110vh) rotate(720deg);
+    opacity:0;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="stars" id="stars"></div>
+
+<div class="game-box">
+  <h1>TEBAK ANGKA</h1>
+
+  <div class="subtitle">
+    Tebak angka rahasia dari 1 - 100
+  </div>
+
+  <div class="hint" id="hint">
+    Masukkan tebakanmu cantikkku
+  </div>
+
+  <input
+    type="number"
+    id="guessInput"
+    placeholder="Contoh: 20"
+  />
+
+  <button id="guessBtn">
+    TEBAK SEKARANG
+  </button>
+
+  <div class="attempts" id="attempts">
+    Percobaan: 0
+  </div>
+</div>
+
+<!-- CELEBRATION -->
+
+<div class="celebration" id="celebration">
+
+  <div class="love-card">
+
+    <div class="mini-love love1">love</div>
+    <div class="mini-love love2">sweet</div>
+    <div class="mini-love love3">forever</div>
+
+    <h2>kamu berhasil ✨</h2>
+
+    <p id="correctNumber"></p>
+
+    <div class="love-text">
+      Baru saja aku meninggalkan mereka, kutemui jantung hatiku; kupegang dan tak kulepaskan dia, sampai kubawa dia ke rumah ibuku, ke kamar orang yang melahirkan aku. Kidung Agung 3:4
+      <br><br>
+      mungkin ini cuma game kecil,
+      tapi senyummu itu bikin semuanya jadi indah.
+    </div>
+
+    <button
+      class="restart"
+      id="restartBtn"
+      onclick="funRestart()"
+    >
+      MAIN LAGI
+    </button>
+
+  </div>
+</div>
+
+<script>
+let secretNumber = Math.floor(Math.random() * 100) + 1;
+let attempts = 0;
+let restartPrank = 0;
+
+const hint = document.getElementById("hint");
+const attemptsText = document.getElementById("attempts");
+const celebration = document.getElementById("celebration");
+const correctNumber = document.getElementById("correctNumber");
+const input = document.getElementById("guessInput");
+const guessBtn = document.getElementById("guessBtn");
+
+/* BUTTON FUNCTION */
+
+guessBtn.addEventListener("click", checkGuess);
+
+/* ENTER FUNCTION */
+
+input.addEventListener("keydown", function(e){
+  if(e.key === "Enter"){
+    checkGuess();
+  }
+});
+
+/* CHECK GUESS */
+
+function checkGuess(){
+
+  const guess = Number(input.value);
+
+  if(!guess){
+    hint.innerHTML = "⚠️ Masukkan angka dulu dong!";
+    hint.style.color = "orange";
+    return;
+  }
+
+  attempts++;
+  attemptsText.innerHTML = `Percobaan: ${attempts}`;
+
+  if(guess < secretNumber){
+
+    hint.innerHTML = "⬆️ LEBIH TINGGI LAGI!";
+    hint.style.color = "#00d9ff";
+    shake();
+
+  }else if(guess > secretNumber){
+
+    hint.innerHTML = "⬇️ KEBESARAN! TURUNIN!";
+    hint.style.color = "#ff6b6b";
+    shake();
+
+  }else{
+
+    hint.innerHTML = " KAMU JAGO BANGET ";
+    hint.style.color = "#00ff88";
+
+    correctNumber.innerHTML =
+      `Angka rahasianya adalah <b>${secretNumber}</b>`;
+
+    celebration.style.display = "flex";
+
+    romanticTransition();
+    launchConfetti();
+    launchHearts();
+  }
+
+  input.value = "";
+}
+
+/* SHAKE */
+
+function shake(){
+
+  const box = document.querySelector(".game-box");
+
+  box.animate([
+    { transform:'translateX(0px)' },
+    { transform:'translateX(-10px)' },
+    { transform:'translateX(10px)' },
+    { transform:'translateX(-10px)' },
+    { transform:'translateX(0px)' }
+  ],{
+    duration:300
+  });
+}
+
+/* RESTART */
+
+function funRestart(){
+
+  const btn = document.getElementById("restartBtn");
+
+  if(restartPrank < 3){
+
+    restartPrank++;
+
+    btn.innerHTML = "EITSSS 😜";
+    btn.style.position = "absolute";
+
+    const x = Math.random() * 250;
+    const y = Math.random() * 250;
+
+    btn.style.left = x + "px";
+    btn.style.top = y + "px";
+
+    setTimeout(()=>{
+      btn.innerHTML = "MAIN LAGI";
+    },700);
+
+    return;
+  }
+
+  restartGame();
+}
+
+function restartGame(){
+
+  secretNumber = Math.floor(Math.random() * 100) + 1;
+  attempts = 0;
+  restartPrank = 0;
+
+  attemptsText.innerHTML = "Percobaan: 0";
+
+  hint.innerHTML = "Masukkan tebakanmu ";
+  hint.style.color = "white";
+
+  celebration.style.display = "none";
+
+  const restartBtn = document.getElementById("restartBtn");
+
+  restartBtn.style.position = "relative";
+  restartBtn.style.left = "0";
+  restartBtn.style.top = "0";
+  restartBtn.innerHTML = "MAIN LAGI";
+
+  document.querySelectorAll(".confetti").forEach(c => c.remove());
+  document.querySelectorAll(".heart").forEach(h => h.remove());
+}
+
+/* EFFECT */
+
+function romanticTransition(){
+
+  document.body.animate([
+    {
+      filter:'brightness(1)',
+      transform:'scale(1)'
+    },
+    {
+      filter:'brightness(1.15)',
+      transform:'scale(1.02)'
+    },
+    {
+      filter:'brightness(1)',
+      transform:'scale(1)'
+    }
+  ],{
+    duration:1200,
+    easing:'ease-out'
+  });
+}
+
+/* HEARTS */
+
+function launchHearts(){
+
+  for(let i=0;i<40;i++){
+
+    const heart = document.createElement("div");
+
+    heart.classList.add("heart");
+
+    heart.innerHTML = "💖";
+
+    heart.style.left =
+      Math.random() * window.innerWidth + "px";
+
+    heart.style.top =
+      window.innerHeight + "px";
+
+    heart.style.fontSize =
+      Math.random() * 30 + 20 + "px";
+
+    heart.style.animationDuration =
+      Math.random() * 4 + 3 + "s";
+
+    document.body.appendChild(heart);
+
+    setTimeout(()=>{
+      heart.remove();
+    },7000);
+  }
+}
+
+/* CONFETTI */
+
+function launchConfetti(){
+
+  for(let i=0;i<180;i++){
+
+    const confetti = document.createElement("div");
+
+    confetti.classList.add("confetti");
+
+    confetti.style.left =
+      Math.random() * window.innerWidth + "px";
+
+    confetti.style.background =
+      `hsl(${Math.random()*360},100%,50%)`;
+
+    confetti.style.width =
+      Math.random() * 12 + 5 + "px";
+
+    confetti.style.height =
+      confetti.style.width;
+
+    confetti.style.animationDuration =
+      Math.random() * 3 + 2 + "s";
+
+    document.body.appendChild(confetti);
+
+    setTimeout(()=>{
+      confetti.remove();
+    },5000);
+  }
+}
+
+/* STARS */
+
+function createStars(){
+
+  const stars = document.getElementById("stars");
+
+  for(let i=0;i<150;i++){
+
+    const star = document.createElement("div");
+
+    star.classList.add("star");
+
+    star.style.left =
+      Math.random() * 100 + "%";
+
+    star.style.top =
+      Math.random() * 100 + "%";
+
+    star.style.animationDuration =
+      Math.random() * 3 + 2 + "s";
+
+    stars.appendChild(star);
+  }
+}
+
+createStars();
+</script>
+
+</body>
+</html>
