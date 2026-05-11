@@ -1,0 +1,322 @@
+<!DOCTYPE html><html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Neon Guess Number</title>  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      height: 100vh;
+      overflow: hidden;
+      background: radial-gradient(circle at top, #151530, #050510 70%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      position: relative;
+    }
+
+    .stars {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 0;
+    }
+
+    .star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: white;
+      opacity: 0.7;
+      animation: twinkle 3s infinite alternate;
+    }
+
+    @keyframes twinkle {
+      from {
+        opacity: 0.2;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    .game-box {
+      position: relative;
+      z-index: 2;
+      width: 90%;
+      max-width: 500px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(12px);
+      border-radius: 30px;
+      padding: 40px;
+      text-align: center;
+      box-shadow: 0 0 40px rgba(0,255,255,0.3);
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%,100% {
+        transform: translateY(0px);
+      }
+      50% {
+        transform: translateY(-10px);
+      }
+    }
+
+    h1 {
+      font-size: 42px;
+      margin-bottom: 10px;
+      color: cyan;
+      text-shadow: 0 0 20px cyan;
+    }
+
+    .subtitle {
+      color: #ccc;
+      margin-bottom: 30px;
+    }
+
+    .hint {
+      min-height: 70px;
+      font-size: 28px;
+      margin-bottom: 25px;
+      font-weight: bold;
+      transition: 0.3s;
+      text-shadow: 0 0 10px white;
+    }
+
+    input {
+      width: 100%;
+      padding: 18px;
+      border: none;
+      outline: none;
+      border-radius: 20px;
+      font-size: 24px;
+      text-align: center;
+      background: rgba(255,255,255,0.08);
+      color: white;
+      box-shadow: inset 0 0 15px rgba(0,255,255,0.3);
+    }
+
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 18px;
+      border: none;
+      border-radius: 20px;
+      background: linear-gradient(45deg, cyan, #00ff88);
+      color: black;
+      font-size: 22px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+      box-shadow: 0 0 20px cyan;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 35px cyan;
+    }
+
+    .attempts {
+      margin-top: 20px;
+      color: #aaa;
+    }
+
+    .celebration {
+      position: absolute;
+      inset: 0;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      background: rgba(0,0,0,0.8);
+      z-index: 5;
+      animation: flash 0.5s infinite alternate;
+    }
+
+    @keyframes flash {
+      from {
+        background: rgba(0,0,0,0.8);
+      }
+      to {
+        background: rgba(0,255,255,0.2);
+      }
+    }
+
+    .celebration h2 {
+      font-size: 60px;
+      color: #00ff88;
+      text-align: center;
+      text-shadow:
+        0 0 10px #00ff88,
+        0 0 20px #00ff88,
+        0 0 40px cyan;
+      animation: bounce 0.8s infinite;
+    }
+
+    .celebration p {
+      margin-top: 20px;
+      font-size: 28px;
+      color: white;
+    }
+
+    @keyframes bounce {
+      0%,100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.15);
+      }
+    }
+
+    .restart {
+      margin-top: 30px;
+      width: 220px;
+    }
+
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: red;
+      top: -20px;
+      animation: fall linear forwards;
+    }
+
+    @keyframes fall {
+      to {
+        transform: translateY(110vh) rotate(720deg);
+        opacity: 0;
+      }
+    }
+  </style></head>
+<body><div class="stars" id="stars"></div><div class="game-box">
+  <h1>🎯 Guess Number</h1>
+  <div class="subtitle">Tebak angka rahasia dari 1 - 100</div>  <div class="hint" id="hint">Masukkan tebakanmu 👀</div>  <input type="number" id="guessInput" placeholder="Contoh: 20"><button onclick="checkGuess()">TEBAK SEKARANG</button>
+
+  <div class="attempts" id="attempts">Percobaan: 0</div>
+</div><div class="celebration" id="celebration">
+  <h2>🎉 YEYYYY KAMU BENERRR 🎉</h2>
+  <p id="correctNumber"></p><button class="restart" onclick="restartGame()">MAIN LAGI</button>
+
+</div><script>
+  let secretNumber = Math.floor(Math.random() * 100) + 1;
+  let attempts = 0;
+
+  const hint = document.getElementById('hint');
+  const attemptsText = document.getElementById('attempts');
+  const celebration = document.getElementById('celebration');
+  const correctNumber = document.getElementById('correctNumber');
+
+  function checkGuess() {
+    const input = document.getElementById('guessInput');
+    const guess = Number(input.value);
+
+    if (!guess) {
+      hint.innerHTML = '⚠️ Masukkan angka dulu dong!';
+      hint.style.color = 'orange';
+      return;
+    }
+
+    attempts++;
+    attemptsText.innerHTML = `Percobaan: ${attempts}`;
+
+    if (guess < secretNumber) {
+      hint.innerHTML = '⬆️ LEBIH TINGGI LAGI!';
+      hint.style.color = '#00d9ff';
+      shake();
+    }
+
+    else if (guess > secretNumber) {
+      hint.innerHTML = '⬇️ KEBESARAN! TURUNIN!';
+      hint.style.color = '#ff6b6b';
+      shake();
+    }
+
+    else {
+      hint.innerHTML = '🔥 KAMU JAGO BANGET 🔥';
+      hint.style.color = '#00ff88';
+
+      celebration.style.display = 'flex';
+      correctNumber.innerHTML = `Angka rahasianya adalah <b>${secretNumber}</b>`;
+
+      launchConfetti();
+    }
+
+    input.value = '';
+  }
+
+  function restartGame() {
+    secretNumber = Math.floor(Math.random() * 100) + 1;
+    attempts = 0;
+
+    attemptsText.innerHTML = 'Percobaan: 0';
+    hint.innerHTML = 'Masukkan tebakanmu 👀';
+    hint.style.color = 'white';
+
+    celebration.style.display = 'none';
+
+    document.querySelectorAll('.confetti').forEach(c => c.remove());
+  }
+
+  function shake() {
+    const box = document.querySelector('.game-box');
+
+    box.animate([
+      { transform: 'translateX(0px)' },
+      { transform: 'translateX(-10px)' },
+      { transform: 'translateX(10px)' },
+      { transform: 'translateX(-10px)' },
+      { transform: 'translateX(0px)' }
+    ], {
+      duration: 300
+    });
+  }
+
+  function launchConfetti() {
+    for (let i = 0; i < 180; i++) {
+      const confetti = document.createElement('div');
+      confetti.classList.add('confetti');
+
+      confetti.style.left = Math.random() * window.innerWidth + 'px';
+      confetti.style.background = `hsl(${Math.random()*360},100%,50%)`;
+      confetti.style.width = Math.random() * 12 + 5 + 'px';
+      confetti.style.height = confetti.style.width;
+      confetti.style.animationDuration = Math.random() * 3 + 2 + 's';
+
+      document.body.appendChild(confetti);
+    }
+  }
+
+  document.getElementById('guessInput').addEventListener('keypress', function(e){
+    if(e.key === 'Enter') {
+      checkGuess();
+    }
+  });
+
+  function createStars() {
+    const stars = document.getElementById('stars');
+
+    for(let i = 0; i < 150; i++) {
+      const star = document.createElement('div');
+      star.classList.add('star');
+
+      star.style.left = Math.random() * 100 + '%';
+      star.style.top = Math.random() * 100 + '%';
+      star.style.animationDuration = Math.random() * 3 + 2 + 's';
+
+      stars.appendChild(star);
+    }
+  }
+
+  createStars();
+</script></body>
+</html>
